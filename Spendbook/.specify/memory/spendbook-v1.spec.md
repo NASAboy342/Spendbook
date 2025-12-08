@@ -17,10 +17,11 @@ Users need to create an account and securely log in to access their financial da
 
 **Acceptance Scenarios**:
 
-1. **Given** I am a new user, **When** I navigate to the registration page and fill in my details (email, password, name), **Then** my account is created and I am automatically logged in to the dashboard
-2. **Given** I am a registered user, **When** I enter my email and password on the login page, **Then** I am authenticated and redirected to the dashboard
-3. **Given** I am logged in, **When** I click logout, **Then** I am logged out and redirected to the login page
-4. **Given** I enter invalid credentials, **When** I attempt to log in, **Then** I see an error message and remain on the login page
+1. **Given** I am a new user, **When** I navigate to the registration page and fill in my details (email, password, name), **Then** my user account is created and I am automatically logged in to the account creation page
+2. **Given** I am a registered user with at least one account, **When** I enter my email and password on the login page, **Then** I am authenticated and redirected to the dashboard
+3. **Given** I am a registered user with no accounts, **When** I log in, **Then** I am redirected to the account creation page
+4. **Given** I am logged in, **When** I click logout, **Then** I am logged out and redirected to the login page
+5. **Given** I enter invalid credentials, **When** I attempt to log in, **Then** I see an error message and remain on the login page
 
 ---
 
@@ -51,10 +52,12 @@ Users need to create multiple balance accounts (e.g., checking, savings, cash) a
 
 **Acceptance Scenarios**:
 
-1. **Given** I am on the dashboard, **When** I click "Create New Account" and enter account details (name, initial balance), **Then** a new account is created and becomes the active account
-2. **Given** I have multiple accounts, **When** I use the account dropdown selector, **Then** I see all my accounts listed with their names and current balances
-3. **Given** I select a different account from the dropdown, **When** the selection completes, **Then** the dashboard updates to show that account's data and it becomes the active account
-4. **Given** I create my first account, **When** the account is created, **Then** it is automatically set as the active account
+1. **Given** I am a new user who just registered, **When** I complete registration, **Then** I am directed to create my first account (name, optional initial balance)
+2. **Given** I am on the dashboard, **When** I click "Create New Account" and enter account details (name, optional initial balance), **Then** a new account is created and becomes the active account
+3. **Given** I have multiple accounts, **When** I use the account dropdown selector, **Then** I see all my accounts listed with their names and current balances
+4. **Given** I select a different account from the dropdown, **When** the selection completes, **Then** the dashboard updates to show that account's data and it becomes the active account
+5. **Given** I create my first account, **When** the account is created, **Then** it is automatically set as the active account and I am redirected to the dashboard
+6. **Given** I have created accounts, **When** I look for a delete option, **Then** no deletion functionality exists (accounts are permanent)
 
 ---
 
@@ -68,10 +71,13 @@ Users need to create and manage tracking topics (categories) for their transacti
 
 **Acceptance Scenarios**:
 
-1. **Given** I am on the dashboard, **When** I view the tracking topics section (lower section), **Then** I see all my created tracking topics as clickable cards
-2. **Given** I click "Create New Topic", **When** I enter a topic name and optional details (color, icon), **Then** the tracking topic is created and appears in the topics section
-3. **Given** I have no tracking topics, **When** I view the topics section, **Then** I see a prompt to create my first tracking topic
-4. **Given** I click on a tracking topic card, **When** the card is clicked, **Then** I see a filtered view of transactions related to that topic
+1. **Given** I am on the dashboard, **When** I view the tracking topics section (lower section), **Then** I see all my active tracking topics as clickable cards
+2. **Given** I click "Create New Topic", **When** I enter a topic name, **Then** the tracking topic is created with "Active" status and appears in the topics section
+3. **Given** I have created topics, **When** I want to hide a topic from use, **Then** I can change its status to "Inactive" (topic remains but hidden from selection dropdown)
+4. **Given** I have inactive topics, **When** I want to use them again, **Then** I can reactivate them by changing status back to "Active"
+5. **Given** I have no active tracking topics, **When** I view the topics section, **Then** I see a prompt to create my first tracking topic
+6. **Given** I click on a tracking topic card, **When** the card is clicked, **Then** I see a filtered view of transactions related to that topic
+7. **Given** I look for a delete option on topics, **When** I try to delete, **Then** no deletion functionality exists (only status change to Inactive)
 
 ---
 
@@ -86,12 +92,14 @@ Users need to record financial transactions (pay-in for income/deposits, pay-out
 **Acceptance Scenarios**:
 
 1. **Given** I am on the dashboard, **When** I click "New Transaction" or "Process Transaction", **Then** I am presented with a transaction form
-2. **Given** I am on the transaction form, **When** I select transaction type (Pay-In or Pay-Out), enter amount, date, and optional description, **Then** I can proceed to save the transaction
-3. **Given** I am filling out a transaction, **When** I optionally select a tracking topic from the dropdown, **Then** the transaction is associated with that topic
-4. **Given** I complete a Pay-In transaction, **When** I save it, **Then** my account balance increases by the transaction amount and dashboard updates
-5. **Given** I complete a Pay-Out transaction, **When** I save it, **Then** my account balance decreases by the transaction amount and dashboard updates
-6. **Given** I complete a transaction, **When** it is saved, **Then** I am redirected back to the dashboard with updated information
-7. **Given** I create a transaction without a tracking topic, **When** I save it, **Then** the transaction is recorded as "Uncategorized" or without a topic
+2. **Given** I am on the transaction form, **When** I select transaction type (Pay-In or Pay-Out), enter amount, and optional description, **Then** I can proceed to save the transaction
+3. **Given** I am on the transaction form, **When** I view the date/time field, **Then** it defaults to current date and time but I can optionally modify it to any date/time
+4. **Given** I am filling out a transaction, **When** I optionally select a tracking topic from the dropdown, **Then** I see only active topics and the transaction is associated with the selected topic
+5. **Given** I complete a Pay-In transaction, **When** I save it, **Then** my account balance increases by the transaction amount and dashboard updates
+6. **Given** I complete a Pay-Out transaction with sufficient balance, **When** I save it, **Then** my account balance decreases by the transaction amount and dashboard updates
+7. **Given** I attempt a Pay-Out transaction exceeding my balance, **When** I try to save it, **Then** the transaction is blocked with error: "Insufficient balance. Current balance: $X.XX"
+8. **Given** I complete a transaction, **When** it is saved, **Then** I am redirected back to the dashboard with updated information
+9. **Given** I create a transaction without a tracking topic, **When** I save it, **Then** the transaction is recorded as "Uncategorized" or without a topic
 
 ---
 
@@ -115,13 +123,12 @@ Users need to view a detailed history of their transactions to review past finan
 
 ### Edge Cases
 
-- What happens when a user tries to create a Pay-Out transaction that exceeds their current account balance? (Allow or block with warning?)
+- **Overdraft Protection**: When a user tries to create a Pay-Out transaction that exceeds their current account balance, the transaction is BLOCKED and an error message is displayed: "Insufficient balance. Current balance: $X.XX"
 - How does the system handle concurrent transactions from multiple devices?
-- What happens when a user deletes a tracking topic that has associated transactions?
+- **Topic Status Management**: Tracking topics cannot be deleted. Instead, users can change topic status to "Active" or "Inactive". Inactive topics are hidden from the selection dropdown but remain associated with historical transactions
 - How are time period calculations handled across timezone changes?
 - What happens if a user's initial account balance is negative?
 - How does the system handle decimal precision for currency (e.g., 0.001 dollars)?
-- What happens when filtering transactions by a deleted or non-existent topic?
 - How are daily/weekly/monthly/yearly periods defined (calendar vs rolling periods)?
 
 ## Requirements *(mandatory)*
@@ -136,77 +143,92 @@ Users need to view a detailed history of their transactions to review past finan
 - **FR-005**: System MUST maintain user session state after login
 - **FR-006**: System MUST allow users to log out, clearing their session
 - **FR-007**: System MUST redirect unauthenticated users to the login page when accessing protected routes
+- **FR-008**: System MUST redirect new users to account creation page after registration
+- **FR-009**: System MUST redirect users with no accounts to account creation page after login
 
 #### Dashboard
-- **FR-008**: System MUST display a user profile card showing user's name and email
-- **FR-009**: System MUST display the current active account name
-- **FR-010**: System MUST display the current total balance of the active account
-- **FR-011**: System MUST calculate and display daily pay-in total (sum of all pay-in transactions today)
-- **FR-012**: System MUST calculate and display daily pay-out total (sum of all pay-out transactions today)
-- **FR-013**: System MUST calculate and display weekly pay-in total (sum of all pay-in transactions in current week)
-- **FR-014**: System MUST calculate and display weekly pay-out total (sum of all pay-out transactions in current week)
-- **FR-015**: System MUST calculate and display monthly pay-in total (sum of all pay-in transactions in current month)
-- **FR-016**: System MUST calculate and display monthly pay-out total (sum of all pay-out transactions in current month)
-- **FR-017**: System MUST calculate and display yearly pay-in total (sum of all pay-in transactions in current year)
-- **FR-018**: System MUST calculate and display yearly pay-out total (sum of all pay-out transactions in current year)
-- **FR-019**: System MUST display all data in card-based layouts using DaisyUI card components
+- **FR-010**: System MUST display a user profile card showing user's name and email
+- **FR-011**: System MUST display the current active account name
+- **FR-012**: System MUST display the current total balance of the active account
+- **FR-013**: System MUST calculate and display daily pay-in total (sum of all pay-in transactions today)
+- **FR-014**: System MUST calculate and display daily pay-out total (sum of all pay-out transactions today)
+- **FR-015**: System MUST calculate and display weekly pay-in total (sum of all pay-in transactions in current week)
+- **FR-016**: System MUST calculate and display weekly pay-out total (sum of all pay-out transactions in current week)
+- **FR-017**: System MUST calculate and display monthly pay-in total (sum of all pay-in transactions in current month)
+- **FR-018**: System MUST calculate and display monthly pay-out total (sum of all pay-out transactions in current month)
+- **FR-019**: System MUST calculate and display yearly pay-in total (sum of all pay-in transactions in current year)
+- **FR-020**: System MUST calculate and display yearly pay-out total (sum of all pay-out transactions in current year)
+- **FR-021**: System MUST display all data in card-based layouts using DaisyUI card components
 
 #### Account Management
-- **FR-020**: System MUST allow users to create new balance accounts with a name and optional initial balance
-- **FR-021**: System MUST support multiple accounts per user
-- **FR-022**: System MUST provide a dropdown selector showing all user accounts with their names and current balances
-- **FR-023**: System MUST allow users to switch between accounts using the dropdown selector
-- **FR-024**: System MUST update dashboard data when switching to a different account
-- **FR-025**: System MUST designate one account as "active" at any given time
-- **FR-026**: System MUST set the first created account as the default active account
+- **FR-022**: System MUST provide an account creation page/form for new users
+- **FR-023**: System MUST allow users to create new balance accounts with a name and optional initial balance
+- **FR-024**: System MUST require at least one account before accessing the dashboard
+- **FR-025**: System MUST support multiple accounts per user
+- **FR-026**: System MUST NOT allow users to delete accounts (accounts are permanent once created)
+- **FR-027**: System MUST provide a dropdown selector showing all user accounts with their names and current balances
+- **FR-028**: System MUST allow users to switch between accounts using the dropdown selector
+- **FR-029**: System MUST update dashboard data when switching to a different account
+- **FR-030**: System MUST designate one account as "active" at any given time
+- **FR-031**: System MUST set the first created account as the default active account
 
 #### Tracking Topics
-- **FR-027**: System MUST allow users to create tracking topics with a name
-- **FR-028**: System MUST display tracking topics as clickable cards in a dedicated section on the dashboard
-- **FR-029**: System MUST allow users to view transactions filtered by a specific tracking topic when clicking its card
-- **FR-030**: System MUST support optional metadata for tracking topics (e.g., color, icon)
-- **FR-031**: System MUST display a prompt to create topics when none exist
+- **FR-032**: System MUST allow users to create tracking topics with a name
+- **FR-033**: System MUST assign "Active" status to newly created topics by default
+- **FR-034**: System MUST support two topic statuses: "Active" and "Inactive"
+- **FR-035**: System MUST allow users to change topic status between Active and Inactive
+- **FR-036**: System MUST NOT allow deletion of tracking topics
+- **FR-037**: System MUST display only active tracking topics as clickable cards on the dashboard
+- **FR-038**: System MUST show only active topics in transaction form dropdown selection
+- **FR-039**: System MUST preserve topic associations with transactions even when topic becomes inactive
+- **FR-040**: System MUST allow users to view transactions filtered by a specific tracking topic when clicking its card
+- **FR-041**: System MUST display a prompt to create topics when no active topics exist
 
 #### Transaction Processing
-- **FR-032**: System MUST provide a transaction form accessible from the dashboard
-- **FR-033**: System MUST support two transaction types: Pay-In (income/deposit) and Pay-Out (expense/withdrawal)
-- **FR-034**: System MUST require transaction amount and date/time
-- **FR-035**: System MUST allow optional description text for transactions
-- **FR-036**: System MUST allow optional tracking topic selection from existing topics
-- **FR-037**: System MUST increase account balance for Pay-In transactions
-- **FR-038**: System MUST decrease account balance for Pay-Out transactions
-- **FR-039**: System MUST save transactions to the active account
-- **FR-040**: System MUST update dashboard summaries immediately after saving a transaction
-- **FR-041**: System MUST redirect users back to dashboard after successful transaction creation
+- **FR-042**: System MUST provide a transaction form accessible from the dashboard
+- **FR-043**: System MUST support two transaction types: Pay-In (income/deposit) and Pay-Out (expense/withdrawal)
+- **FR-044**: System MUST require transaction amount
+- **FR-045**: System MUST default transaction date/time to current date and time
+- **FR-046**: System MUST allow users to optionally modify transaction date/time
+- **FR-047**: System MUST allow optional description text for transactions
+- **FR-048**: System MUST allow optional tracking topic selection from active topics only
+- **FR-049**: System MUST validate Pay-Out transactions against current account balance
+- **FR-050**: System MUST block Pay-Out transactions that exceed current balance
+- **FR-051**: System MUST display error message "Insufficient balance. Current balance: $X.XX" when Pay-Out exceeds balance
+- **FR-052**: System MUST increase account balance for Pay-In transactions
+- **FR-053**: System MUST decrease account balance for Pay-Out transactions (when sufficient balance exists)
+- **FR-054**: System MUST save transactions to the active account
+- **FR-055**: System MUST update dashboard summaries immediately after saving a transaction
+- **FR-056**: System MUST redirect users back to dashboard after successful transaction creation
 
 #### Transaction Reporting
-- **FR-042**: System MUST provide a dedicated transaction report view/page
-- **FR-043**: System MUST display the 50 most recent transactions by default, ordered by date (newest first)
-- **FR-044**: System MUST show for each transaction: date/time, type, amount, tracking topic (if any), description, and account
-- **FR-045**: System MUST allow users to load more transactions beyond the initial 50
-- **FR-046**: System MUST display a helpful message when no transactions exist
-- **FR-047**: System MUST allow users to view full transaction details by clicking on a transaction
+- **FR-057**: System MUST provide a dedicated transaction report view/page
+- **FR-058**: System MUST display the 50 most recent transactions by default, ordered by date (newest first)
+- **FR-059**: System MUST show for each transaction: date/time, type, amount, tracking topic (if any, including inactive topics), description, and account
+- **FR-060**: System MUST allow users to load more transactions beyond the initial 50
+- **FR-061**: System MUST display a helpful message when no transactions exist
+- **FR-062**: System MUST allow users to view full transaction details by clicking on a transaction
 
 #### General Requirements
-- **FR-048**: System MUST store all data persistently (user data, accounts, topics, transactions)
-- **FR-049**: System MUST format all currency amounts consistently with 2 decimal places
-- **FR-050**: System MUST use the user's local timezone for date/time display
-- **FR-051**: System MUST implement responsive design for mobile and desktop viewing
-- **FR-052**: System MUST use DaisyUI components (btn, card, dropdown, checkbox, modal, form inputs) throughout the UI
+- **FR-063**: System MUST store all data persistently (user data, accounts, topics with status, transactions)
+- **FR-064**: System MUST format all currency amounts consistently with 2 decimal places
+- **FR-065**: System MUST use the user's local timezone for date/time display
+- **FR-066**: System MUST implement responsive design for mobile and desktop viewing
+- **FR-067**: System MUST use DaisyUI components (btn, card, dropdown, checkbox, modal, form inputs) throughout the UI
 
 ### Key Entities
 
-- **User**: Represents a user account with authentication credentials (email, password hash), display name, and associated financial accounts
-- **Account**: Represents a financial account (e.g., checking, savings, cash) with name, current balance, and relationship to user. Each user can have multiple accounts. One account is marked as "active" at any time
-- **Tracking Topic**: Represents a category for organizing transactions (e.g., "Groceries", "Rent", "Salary") with name and optional visual metadata (color, icon). Belongs to a user
-- **Transaction**: Represents a financial event (Pay-In or Pay-Out) with amount, type, date/time, optional description, optional tracking topic reference, and relationship to an account. Affects account balance
+- **User**: Represents a user account with authentication credentials (email, password hash), display name, and associated financial accounts. Must have at least one account to access dashboard
+- **Account**: Represents a financial account (e.g., checking, savings, cash) with name, current balance, and relationship to user. Each user can have multiple accounts. One account is marked as "active" at any time. Accounts cannot be deleted by users
+- **Tracking Topic**: Represents a category for organizing transactions (e.g., "Groceries", "Rent", "Salary") with name and status (Active/Inactive). Belongs to a user. Topics cannot be deleted but can be deactivated. Inactive topics are hidden from selection but remain associated with historical transactions
+- **Transaction**: Represents a financial event (Pay-In or Pay-Out) with amount, type, date/time (defaults to now, user can modify), optional description, optional tracking topic reference, and relationship to an account. Pay-Out transactions are blocked if they exceed current balance. Affects account balance
 
 ### Entity Relationships
 
 - User → Account (One-to-Many): A user can have multiple accounts
-- User → Tracking Topic (One-to-Many): A user can create multiple tracking topics
+- User → Tracking Topic (One-to-Many): A user can create multiple tracking topics with Active/Inactive status
 - Account → Transaction (One-to-Many): An account has multiple transactions
-- Tracking Topic → Transaction (One-to-Many, Optional): A topic can be associated with multiple transactions, but transactions can exist without a topic
+- Tracking Topic → Transaction (One-to-Many, Optional): A topic can be associated with multiple transactions, but transactions can exist without a topic. Topic status doesn't affect existing transaction associations
 - User → Transaction (Indirect through Account): All transactions belong to an account which belongs to a user
 
 ## Success Criteria *(mandatory)*
@@ -214,7 +236,7 @@ Users need to view a detailed history of their transactions to review past finan
 ### Measurable Outcomes
 
 - **SC-001**: Users can complete account registration and first login in under 1 minute
-- **SC-002**: Users can create their first account and record their first transaction within 2 minutes of registration
+- **SC-002**: Users can create their first account (prompted after registration) and record their first transaction within 2 minutes of registration
 - **SC-003**: Dashboard loads and displays all summary cards (10+ cards) within 2 seconds
 - **SC-004**: Users can switch between accounts and see updated data within 1 second
 - **SC-005**: Transaction form can be completed and saved within 30 seconds
@@ -222,7 +244,8 @@ Users need to view a detailed history of their transactions to review past finan
 - **SC-007**: Transaction report displays 50 transactions within 2 seconds
 - **SC-008**: All UI components use DaisyUI classes and maintain consistent styling
 - **SC-009**: Application is fully responsive and usable on mobile devices (320px width minimum)
-- **SC-010**: Users can successfully complete all primary workflows (create account → create topic → add transaction → view report) without errors
+- **SC-010**: Users can successfully complete all primary workflows (register → create account → create topic → add transaction → view report) without errors
+- **SC-011**: Pay-Out transactions exceeding balance are blocked 100% of the time with clear error messaging
 
 ### User Experience Goals
 
@@ -253,11 +276,12 @@ The following features are explicitly excluded from v1 ("lite mode only"):
 
 - User profile editing (beyond initial registration)
 - Password reset/recovery
+- Account editing (rename) or deletion
 - Multi-currency support
 - Budget planning or limits
 - Recurring transactions
 - Transaction editing or deletion
-- Account deletion
+- Tracking topic deletion (topics can only be marked inactive)
 - Data export/import
 - Transaction search or advanced filtering
 - Charts or graphs
@@ -281,3 +305,13 @@ The following features are explicitly excluded from v1 ("lite mode only"):
 - **Currency**: Default to USD ($) with 2 decimal places. Multi-currency support is out of scope for v1.
 
 - **Initial Balance**: When creating an account, users can optionally set an initial balance (useful for tracking existing accounts).
+
+- **Overdraft Protection**: Pay-Out transactions are blocked when they would result in negative balance. Error message clearly states current balance.
+
+- **Topic Status System**: Instead of deletion, topics use Active/Inactive status. This preserves data integrity for historical transactions while allowing users to hide unused categories.
+
+- **Account Permanence**: Accounts cannot be deleted to maintain transaction history integrity. Users should name accounts carefully.
+
+- **First-Time User Flow**: Register → Create First Account → Dashboard. Users cannot access dashboard without at least one account.
+
+- **Transaction Dating**: Date/time defaults to "now" but users can backdate or future-date transactions as needed for flexibility.
