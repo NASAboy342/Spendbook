@@ -32,7 +32,7 @@ Spendbook v1 is a financial management tool built with Vue 3 + TypeScript that e
 ## API Integration Overview
 
 ### Base URL Structure
-- API Base: `[TO BE CONFIGURED]` (e.g., `https://api.spendbook.com` or `http://localhost:5000`)
+- API Base: `https://apini.ppiinn.net`
 - All endpoints use POST method
 - Authentication via username in request body (no token/session management visible in API)
 
@@ -61,10 +61,11 @@ Spendbook v1 is a financial management tool built with Vue 3 + TypeScript that e
 
 ### Key API Features Noted
 - **Transaction Summaries Pre-calculated**: API returns `dailyPayIn`, `dailyPayOut`, etc. on Account objects
-- **Topic Status Management**: API supports `EnumPaymentTrackingTopicStatus` (0-4) via update endpoint
+- **Topic Status Management**: API supports `EnumPaymentTrackingTopicStatus` (Active=0, Completed=1, Failed=2, Cancelled=3, Unknown=4)
 - **Balance Tracking**: Transactions include `balanceBefore` and `balanceAfter`
-- **Currency Support**: API has currency fields (but v1 spec uses USD only)
+- **Currency Support**: API has currency fields (v1 uses USD only)
 - **No Overdraft Check in API**: Client-side validation required before calling `/payout`
+- **UTC Timestamps**: All dates must be converted to UTC before sending to API
 
 ## Project Structure
 
@@ -178,11 +179,11 @@ Spendbook/
 #### 1. API Integration Strategy
 - **Objective**: Understand API authentication, error handling, and response patterns
 - **Questions to Answer**:
-  - Does API require session tokens after login or username-per-request?
+  - Does API require session tokens after login or username-per-request? ✅ Username per request
   - What HTTP status codes does API return for errors?
-  - How are API errors structured (errorCode, errorMessage fields)?
-  - What is the actual API base URL (dev/prod environments)?
-  - Does API support CORS for local development?
+  - How are API errors structured (errorCode, errorMessage fields)? ✅ Standard wrapper
+  - What is the actual API base URL? ✅ `https://apini.ppiinn.net`
+  - Does API support CORS for local development? ✅ Yes
 - **Deliverable**: API integration guide document
 
 #### 2. TypeScript Type Generation
@@ -212,14 +213,14 @@ Spendbook/
   - Should we use Pinia for global state or composables only?
 - **Deliverable**: State management architecture document
 
-#### 5. Date/Time Handling
+#### 5. Date/Time Handling ✅ CLARIFIED
 - **Objective**: Plan date/time input and display strategy
 - **Questions to Answer**:
   - Which library for date/time picker (native, vue-datepicker, flatpickr)?
-  - How to convert between local timezone and UTC for API?
-  - Date format for display vs submission?
-  - How to handle "default to now" in transaction form?
-- **Deliverable**: Date/time utilities specification
+  - How to convert between local timezone and UTC for API? ✅ Always convert local to UTC before API call
+  - Date format for display vs submission? ✅ Display: local time, Submit: UTC ISO string
+  - How to handle "default to now" in transaction form? ✅ Default to current UTC if user doesn't input
+- **Deliverable**: Date/time utilities specification with UTC conversion helpers
 
 #### 6. Router & Navigation Flow
 - **Objective**: Design navigation structure and route guards
@@ -396,14 +397,14 @@ interface ApiBaseResponse<T> {
 - **Create Topic**: `POST /api/spendbook/create-tracking-topic`
   - Request: `{ username, topicName, utcTargetDate, targetAmount, currency }`
   - Response: `BaseResponse`
-  - **Note**: API requires target date/amount (not in spec - needs clarification or defaults)
+  - **Note**: User can input target date and target amount to mark payment goals
 - **Get Topics**: `POST /api/spendbook/get-tracking-topic`
   - Request: `{ username }`
   - Response: `GetTrackingTopicResponse` (topics[])
 - **Update Topic**: `POST /api/spendbook/update-tracking-topic`
   - Request: `{ username, trackingTopicId, newName?, newStatus }`
   - Response: `BaseResponse`
-  - **Status Enum**: 0, 1, 2, 3, 4 (need to map to Active/Inactive)
+  - **Status Enum**: Active=0, Completed=1, Failed=2, Cancelled=3, Unknown=4
 
 #### User Story 5: Transactions
 - **Pay-In**: `POST /api/spendbook/payin`
@@ -418,39 +419,53 @@ interface ApiBaseResponse<T> {
 - **Get Transactions**: `POST /api/spendbook/get-transaction`
   - Request: `{ username, accountId, fromUtcDate, toUtcDate, trackingTopicId? }`
   - Response: `GetTransactionResponse` (transactions[])
-  - **Note**: Need to calculate date range for "last 50" (e.g., last 30 days)
+  - **Note**: User can select date range (defaults to today), show all transactions in range (no 50-limit)
 
-### API Gaps & Clarifications Needed
+### API Clarifications - RESOLVED ✅
 
-#### Critical Gaps
-1. **Topic Status Enum Mapping**: What do status codes 0-4 mean?
-   - Assumption: 0=Active, 1=Inactive, others TBD
-   - **Action**: Request API documentation or test empirically
+#### Topic Status Enum Mapping ✅ RESOLVED
+- **Active** = 0
+- **Completed** = 1
+- **Failed** = 2
+- **Cancelled** = 3
+- **Unknown** = 4
 
-2. **Topic Target Date/Amount**: Spec doesn't mention these, but API requires them
-   - **Option A**: Use dummy values (far future date, $0 amount)
-   - **Option B**: Make them optional in UI with defaults
-   - **Recommendation**: Option A for v1 (hide from user, use defaults)
+**Implementation**: 
+- UI shows "Active" topics by default (status = 0)
+- User can mark topics as Completed/Failed/Cancelled via update endpoint
+- Status filter in UI: Active | Completed | Failed | Cancelled
 
-3. **Transaction Timestamp**: API uses `timestamp` field, but spec says user can set date/time
-   - **Question**: Does API accept custom timestamp in payin/payout requests?
-   - **If not**: Need to implement date/time conversion or accept API limitation
+#### Topic Target Date/Amount ✅ RESOLVED
+- **Decision**: Allow user input for target date and target amount
+- **Purpose**: Let users mark payment goals/targets for tracking topics
+- **UI Implementation**: 
+  - Target Date: Date picker (required field)
+  - Target Amount: Currency input (required field)
+  - Display progress towards target on dashboard
 
-4. **"Last 50 Transactions"**: API requires date range, not count
-   - **Solution**: Request last 30-90 days, sort by timestamp desc, limit to 50 in UI
-   - **Or**: Implement pagination and request multiple date ranges
+#### Transaction Timestamps ✅ RESOLVED
+- **User Input Provided**: Convert local time to UTC before API call
+- **User Input Not Provided**: Use current UTC timestamp as default
+- **Implementation**:
+  ```typescript
+  const utcTimestamp = userInputTime 
+    ? convertLocalToUTC(userInputTime) 
+    : new Date().toISOString();
+  ```
 
-5. **Receipt URL**: API accepts `receiptUrl` but spec doesn't mention attachments
-   - **Action**: Ignore for v1 (per spec: attachments out of scope)
+#### Transaction Report Date Range ✅ RESOLVED
+- **Default**: Show transactions for today (fromUtcDate = start of today, toUtcDate = end of today)
+- **User Selection**: Provide date range picker (from/to dates)
+- **Display**: Show ALL transactions in selected range (no 50-limit on frontend)
+- **Note**: Removed "last 50" requirement - show all transactions in date range
 
-6. **Currency Field**: API has currency on accounts/topics, but spec uses USD only
-   - **Action**: Always send "USD" as currency value
+#### API Base URL ✅ RESOLVED
+- **Production**: `https://apini.ppiinn.net`
+- **CORS**: Enabled for local development
 
-#### Nice-to-Have Clarifications
-- Session/token management (or is username-per-request sufficient?)
-- Rate limiting policies
-- Batch operation support
-- Pagination for transactions (beyond date range filtering)
+#### Still Applicable
+- **Receipt URL**: Ignore for v1 (attachments out of scope per spec)
+- **Currency**: Always use "USD" for v1
 
 ## Dependencies & Configuration
 
@@ -500,37 +515,30 @@ module.exports = {
 
 #### `.env` files
 ```
-VITE_API_BASE_URL=http://localhost:5000  # or production URL
+VITE_API_BASE_URL=https://apini.ppiinn.net
 ```
 
 ## Risk Assessment
 
-### High Risk
-1. **API Timestamp Handling**: If API doesn't accept custom timestamps, backdate feature is broken
-   - **Mitigation**: Test API early in Phase 0, clarify with API team
+### Resolved Risks ✅
+1. ~~**API Timestamp Handling**~~ - **RESOLVED**: Convert local to UTC if user inputs, else use current UTC
+2. ~~**Topic Required Fields**~~ - **RESOLVED**: User inputs target date/amount (payment goals feature)
+3. ~~**"Last 50 Transactions"**~~ - **RESOLVED**: Show all transactions in user-selected date range (default: today)
+4. ~~**CORS Issues**~~ - **RESOLVED**: API supports CORS at `https://apini.ppiinn.net`
 
-2. **Topic Required Fields**: Target date/amount not in spec but required by API
-   - **Mitigation**: Use sensible defaults, hide from user in v1
+### Remaining Medium Risk
+5. **Overdraft Validation**: API may allow negative balance server-side
+   - **Mitigation**: Implement strict client-side validation before calling payout endpoint
 
-3. **"Last 50 Transactions" Implementation**: API uses date range, not count
-   - **Mitigation**: Request large date range, implement client-side limiting
-
-### Medium Risk
-4. **Overdraft Validation**: API may allow negative balance server-side
-   - **Mitigation**: Implement strict client-side validation
-
-5. **Authentication Persistence**: No clear session token in API
-   - **Mitigation**: Store username locally, test API behavior
-
-6. **CORS Issues**: API may not allow local development origin
-   - **Mitigation**: Use Vite proxy configuration
+6. **Authentication Persistence**: No session token in API (username-per-request)
+   - **Mitigation**: Store username in localStorage, clear on logout
 
 ### Low Risk
 7. **DaisyUI Version Compatibility**: Components may change between versions
    - **Mitigation**: Lock DaisyUI version in package.json
 
 8. **Date/Time Library**: Need datetime picker that works with Vue 3
-   - **Mitigation**: Research in Phase 0, fallback to native input type="datetime-local"
+   - **Mitigation**: Use native `<input type="datetime-local">` with UTC conversion helper
 
 ## Success Metrics
 
@@ -560,18 +568,24 @@ VITE_API_BASE_URL=http://localhost:5000  # or production URL
 3. **Then**: Run `/speckit.tasks` to generate implementation task list
 4. **Finally**: Begin implementation following task priorities
 
-## Open Questions for API Team
+## All Critical Questions Resolved ✅
 
-1. What do `EnumPaymentTrackingTopicStatus` values 0-4 represent?
-2. Can payin/payout accept custom timestamp, or always use server time?
-3. What is the API base URL for development and production?
-4. Does API require CORS configuration for local development (localhost:5173)?
-5. Is username-per-request authentication sufficient, or should we implement token storage?
-6. How to get "last N transactions" if API only supports date range filtering?
-7. Can we omit `utcTargetDate` and `targetAmount` when creating tracking topics?
+1. ~~What do `EnumPaymentTrackingTopicStatus` values 0-4 represent?~~ ✅ **RESOLVED**: Active=0, Completed=1, Failed=2, Cancelled=3, Unknown=4
+2. ~~Can payin/payout accept custom timestamp, or always use server time?~~ ✅ **RESOLVED**: Convert user input to UTC or use current UTC
+3. ~~What is the API base URL for development and production?~~ ✅ **RESOLVED**: `https://apini.ppiinn.net`
+4. ~~Does API require CORS configuration for local development?~~ ✅ **RESOLVED**: CORS is supported
+5. ~~Is username-per-request authentication sufficient?~~ ✅ **RESOLVED**: Yes, username sent with each request
+6. ~~How to get "last N transactions"?~~ ✅ **RESOLVED**: Use date range filter, show all in range (no limit)
+7. ~~Can we omit `utcTargetDate` and `targetAmount`?~~ ✅ **RESOLVED**: No - these are payment goal features, user inputs required
+
+### Remaining Questions (Nice-to-Have)
+- HTTP status codes for specific error scenarios
+- Rate limiting policies (if any)
+- Maximum date range for transaction queries
 
 ---
 
-**Plan Version**: 1.0  
+**Plan Version**: 1.1  
 **Last Updated**: 2025-12-08  
-**Next Review**: After Phase 0 research completion
+**Status**: All critical clarifications resolved - Ready for implementation  
+**Next Step**: Run `/speckit.tasks` to generate implementation tasks

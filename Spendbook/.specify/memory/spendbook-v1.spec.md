@@ -72,12 +72,13 @@ Users need to create and manage tracking topics (categories) for their transacti
 **Acceptance Scenarios**:
 
 1. **Given** I am on the dashboard, **When** I view the tracking topics section (lower section), **Then** I see all my active tracking topics as clickable cards
-2. **Given** I click "Create New Topic", **When** I enter a topic name, **Then** the tracking topic is created with "Active" status and appears in the topics section
-3. **Given** I have created topics, **When** I want to hide a topic from use, **Then** I can change its status to "Inactive" (topic remains but hidden from selection dropdown)
-4. **Given** I have inactive topics, **When** I want to use them again, **Then** I can reactivate them by changing status back to "Active"
-5. **Given** I have no active tracking topics, **When** I view the topics section, **Then** I see a prompt to create my first tracking topic
-6. **Given** I click on a tracking topic card, **When** the card is clicked, **Then** I see a filtered view of transactions related to that topic
-7. **Given** I look for a delete option on topics, **When** I try to delete, **Then** no deletion functionality exists (only status change to Inactive)
+2. **Given** I click "Create New Topic", **When** I enter a topic name, target date, and target amount, **Then** the tracking topic is created with "Active" status and appears in the topics section
+3. **Given** I am creating a topic, **When** I set a target amount and target date, **Then** I can track progress towards my payment goal
+4. **Given** I have created topics, **When** I want to mark a topic as completed/failed/cancelled, **Then** I can change its status (Active, Completed, Failed, Cancelled)
+5. **Given** I have completed/failed/cancelled topics, **When** I want to use them again, **Then** I can reactivate them by changing status back to "Active"
+6. **Given** I have no active tracking topics, **When** I view the topics section, **Then** I see a prompt to create my first tracking topic
+7. **Given** I click on a tracking topic card, **When** the card is clicked, **Then** I see a filtered view of transactions related to that topic
+8. **Given** I look for a delete option on topics, **When** I try to delete, **Then** no deletion functionality exists (only status changes)
 
 ---
 
@@ -113,11 +114,12 @@ Users need to view a detailed history of their transactions to review past finan
 
 **Acceptance Scenarios**:
 
-1. **Given** I am logged in, **When** I navigate to "Transaction Report" or "View Transactions", **Then** I see a list of my 50 most recent transactions ordered by date (newest first)
-2. **Given** I am viewing the transaction report, **When** the page loads, **Then** each transaction shows: date/time, type (pay-in/pay-out), amount, tracking topic (if any), description, and resulting balance
-3. **Given** I have more than 50 transactions, **When** I scroll to the bottom of the report, **Then** I see a "Load More" button or pagination to view older transactions
-4. **Given** I have no transactions, **When** I view the transaction report, **Then** I see a message indicating no transactions exist with a link to create one
-5. **Given** I view the transaction report, **When** I click on a transaction, **Then** I see the full transaction details
+1. **Given** I am logged in, **When** I navigate to "Transaction Report" or "View Transactions", **Then** I see transactions for today by default (or from selected date range) ordered by date (newest first)
+2. **Given** I am viewing the transaction report, **When** I want to view different dates, **Then** I can select a date range using from/to date pickers
+3. **Given** I am viewing the transaction report, **When** the page loads, **Then** each transaction shows: date/time, type (pay-in/pay-out), amount, tracking topic (if any), description, and resulting balance
+4. **Given** I select a date range, **When** I apply the filter, **Then** I see ALL transactions within that range (no pagination or limit)
+5. **Given** I have no transactions in the selected date range, **When** I view the transaction report, **Then** I see a message indicating no transactions exist for this period
+6. **Given** I view the transaction report, **When** I click on a transaction, **Then** I see the full transaction details
 
 ---
 
@@ -173,41 +175,47 @@ Users need to view a detailed history of their transactions to review past finan
 - **FR-031**: System MUST set the first created account as the default active account
 
 #### Tracking Topics
-- **FR-032**: System MUST allow users to create tracking topics with a name
-- **FR-033**: System MUST assign "Active" status to newly created topics by default
-- **FR-034**: System MUST support two topic statuses: "Active" and "Inactive"
-- **FR-035**: System MUST allow users to change topic status between Active and Inactive
+- **FR-032**: System MUST allow users to create tracking topics with a name, target date, and target amount
+- **FR-033**: System MUST assign "Active" status (0) to newly created topics by default
+- **FR-034**: System MUST support five topic statuses: Active (0), Completed (1), Failed (2), Cancelled (3), Unknown (4)
+- **FR-035**: System MUST allow users to change topic status between Active, Completed, Failed, and Cancelled
 - **FR-036**: System MUST NOT allow deletion of tracking topics
-- **FR-037**: System MUST display only active tracking topics as clickable cards on the dashboard
+- **FR-037**: System MUST display active tracking topics as clickable cards on the dashboard
 - **FR-038**: System MUST show only active topics in transaction form dropdown selection
-- **FR-039**: System MUST preserve topic associations with transactions even when topic becomes inactive
+- **FR-039**: System MUST preserve topic associations with transactions regardless of topic status
 - **FR-040**: System MUST allow users to view transactions filtered by a specific tracking topic when clicking its card
 - **FR-041**: System MUST display a prompt to create topics when no active topics exist
+- **FR-042**: System MUST display target date and target amount for each tracking topic (payment goals)
+- **FR-043**: System MUST show progress towards target amount on topic cards
 
 #### Transaction Processing
-- **FR-042**: System MUST provide a transaction form accessible from the dashboard
-- **FR-043**: System MUST support two transaction types: Pay-In (income/deposit) and Pay-Out (expense/withdrawal)
-- **FR-044**: System MUST require transaction amount
-- **FR-045**: System MUST default transaction date/time to current date and time
-- **FR-046**: System MUST allow users to optionally modify transaction date/time
-- **FR-047**: System MUST allow optional description text for transactions
-- **FR-048**: System MUST allow optional tracking topic selection from active topics only
-- **FR-049**: System MUST validate Pay-Out transactions against current account balance
-- **FR-050**: System MUST block Pay-Out transactions that exceed current balance
-- **FR-051**: System MUST display error message "Insufficient balance. Current balance: $X.XX" when Pay-Out exceeds balance
-- **FR-052**: System MUST increase account balance for Pay-In transactions
-- **FR-053**: System MUST decrease account balance for Pay-Out transactions (when sufficient balance exists)
-- **FR-054**: System MUST save transactions to the active account
-- **FR-055**: System MUST update dashboard summaries immediately after saving a transaction
-- **FR-056**: System MUST redirect users back to dashboard after successful transaction creation
+- **FR-044**: System MUST provide a transaction form accessible from the dashboard
+- **FR-045**: System MUST support two transaction types: Pay-In (income/deposit) and Pay-Out (expense/withdrawal)
+- **FR-046**: System MUST require transaction amount
+- **FR-047**: System MUST default transaction date/time to current date and time
+- **FR-048**: System MUST allow users to optionally modify transaction date/time
+- **FR-049**: System MUST convert local time to UTC before sending to API
+- **FR-050**: System MUST use current UTC timestamp if user doesn't input custom date/time
+- **FR-051**: System MUST allow optional description text for transactions
+- **FR-052**: System MUST allow optional tracking topic selection from active topics only
+- **FR-053**: System MUST validate Pay-Out transactions against current account balance
+- **FR-054**: System MUST block Pay-Out transactions that exceed current balance
+- **FR-055**: System MUST display error message "Insufficient balance. Current balance: $X.XX" when Pay-Out exceeds balance
+- **FR-056**: System MUST increase account balance for Pay-In transactions
+- **FR-057**: System MUST decrease account balance for Pay-Out transactions (when sufficient balance exists)
+- **FR-058**: System MUST save transactions to the active account
+- **FR-059**: System MUST update dashboard summaries immediately after saving a transaction
+- **FR-060**: System MUST redirect users back to dashboard after successful transaction creation
 
 #### Transaction Reporting
-- **FR-057**: System MUST provide a dedicated transaction report view/page
-- **FR-058**: System MUST display the 50 most recent transactions by default, ordered by date (newest first)
-- **FR-059**: System MUST show for each transaction: date/time, type, amount, tracking topic (if any, including inactive topics), description, and account
-- **FR-060**: System MUST allow users to load more transactions beyond the initial 50
-- **FR-061**: System MUST display a helpful message when no transactions exist
-- **FR-062**: System MUST allow users to view full transaction details by clicking on a transaction
+- **FR-061**: System MUST provide a dedicated transaction report view/page
+- **FR-062**: System MUST default to showing today's transactions, ordered by date (newest first)
+- **FR-063**: System MUST provide date range selection (from date and to date pickers)
+- **FR-064**: System MUST display ALL transactions within the selected date range (no pagination or limit)
+- **FR-065**: System MUST show for each transaction: date/time (in local timezone), type, amount, tracking topic (if any, including non-active topics), description, and account
+- **FR-066**: System MUST convert UTC timestamps from API to local timezone for display
+- **FR-067**: System MUST display a helpful message when no transactions exist in the selected date range
+- **FR-068**: System MUST allow users to view full transaction details by clicking on a transaction
 
 #### General Requirements
 - **FR-063**: System MUST store all data persistently (user data, accounts, topics with status, transactions)
@@ -220,8 +228,8 @@ Users need to view a detailed history of their transactions to review past finan
 
 - **User**: Represents a user account with authentication credentials (email, password hash), display name, and associated financial accounts. Must have at least one account to access dashboard
 - **Account**: Represents a financial account (e.g., checking, savings, cash) with name, current balance, and relationship to user. Each user can have multiple accounts. One account is marked as "active" at any time. Accounts cannot be deleted by users
-- **Tracking Topic**: Represents a category for organizing transactions (e.g., "Groceries", "Rent", "Salary") with name and status (Active/Inactive). Belongs to a user. Topics cannot be deleted but can be deactivated. Inactive topics are hidden from selection but remain associated with historical transactions
-- **Transaction**: Represents a financial event (Pay-In or Pay-Out) with amount, type, date/time (defaults to now, user can modify), optional description, optional tracking topic reference, and relationship to an account. Pay-Out transactions are blocked if they exceed current balance. Affects account balance
+- **Tracking Topic**: Represents a payment goal/category for organizing transactions (e.g., "Save for Vacation", "Groceries", "Rent") with name, status (Active=0, Completed=1, Failed=2, Cancelled=3, Unknown=4), target date, and target amount. Belongs to a user. Topics cannot be deleted but can change status. Non-active topics are hidden from selection but remain associated with historical transactions
+- **Transaction**: Represents a financial event (Pay-In or Pay-Out) with amount, type, UTC timestamp (defaults to now, user can modify in local time which is converted to UTC), optional description, optional tracking topic reference, and relationship to an account. Pay-Out transactions are blocked if they exceed current balance. Affects account balance
 
 ### Entity Relationships
 
@@ -314,4 +322,12 @@ The following features are explicitly excluded from v1 ("lite mode only"):
 
 - **First-Time User Flow**: Register → Create First Account → Dashboard. Users cannot access dashboard without at least one account.
 
-- **Transaction Dating**: Date/time defaults to "now" but users can backdate or future-date transactions as needed for flexibility.
+- **Transaction Dating**: Date/time defaults to "now" but users can backdate or future-date transactions as needed for flexibility. All timestamps are converted from local timezone to UTC before sending to API, and converted back to local timezone for display.
+
+- **Tracking Topic Goals**: Topics include target date and target amount fields to help users set and track payment goals. Progress towards target is displayed on dashboard.
+
+- **Topic Status System Extended**: Topics support five statuses (Active, Completed, Failed, Cancelled, Unknown) allowing users to track lifecycle of payment goals beyond just Active/Inactive.
+
+- **Transaction Report Flexibility**: Users can select any date range to view transactions (defaults to today). All transactions in range are displayed without pagination limits.
+
+- **API Integration**: Application connects to `https://apini.ppiinn.net` for all backend operations. No local data persistence - all data managed by API.
