@@ -1,13 +1,12 @@
 <script setup lang="ts">
-import { useRouter } from 'vue-router'
-import { authService } from '@/services/auth'
+import { computed } from 'vue'
+import { useAuth } from '@/composables/useAuth'
 
-const router = useRouter()
+const { logout, currentUser } = useAuth()
 
-const handleLogout = () => {
-  authService.logout()
-  router.push('/login')
-}
+const displayName = computed(() => {
+  return currentUser.value?.username || 'User'
+})
 </script>
 
 <template>
@@ -37,9 +36,17 @@ const handleLogout = () => {
             <router-link to="/reports" active-class="active">Reports</router-link>
           </li>
           <li>
-            <button @click="handleLogout" class="btn btn-ghost btn-sm">
-              Logout
-            </button>
+            <div class="dropdown dropdown-end">
+              <div tabindex="0" role="button" class="btn btn-ghost">
+                <span>{{ displayName }}</span>
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="inline-block w-4 h-4 stroke-current ml-1">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                </svg>
+              </div>
+              <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
+                <li><button @click="logout">Logout</button></li>
+              </ul>
+            </div>
           </li>
         </ul>
       </div>
