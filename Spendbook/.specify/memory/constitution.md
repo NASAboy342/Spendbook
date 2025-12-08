@@ -1,50 +1,112 @@
-# [PROJECT_NAME] Constitution
-<!-- Example: Spec Constitution, TaskFlow Constitution, etc. -->
+# Spendbook Constitution
 
 ## Core Principles
 
-### [PRINCIPLE_1_NAME]
-<!-- Example: I. Library-First -->
-[PRINCIPLE_1_DESCRIPTION]
-<!-- Example: Every feature starts as a standalone library; Libraries must be self-contained, independently testable, documented; Clear purpose required - no organizational-only libraries -->
+### I. Vue 3 Composition API
+- All components must use the Composition API with `<script setup>` syntax
+- No Options API allowed
+- Use `ref`, `reactive`, `computed`, `watch`, and other composition functions
+- Organize logic into reusable composables for shared functionality
 
-### [PRINCIPLE_2_NAME]
-<!-- Example: II. CLI Interface -->
-[PRINCIPLE_2_DESCRIPTION]
-<!-- Example: Every library exposes functionality via CLI; Text in/out protocol: stdin/args → stdout, errors → stderr; Support JSON + human-readable formats -->
+### II. TypeScript Strict Mode (NON-NEGOTIABLE)
+- TypeScript strict mode must remain enabled at all times
+- All code must have proper type annotations
+- No `any` types unless absolutely necessary and documented
+- Interfaces and types must be defined for all props, emits, and composable return values
+- Prefer `type` over `interface` unless extending is required
 
-### [PRINCIPLE_3_NAME]
-<!-- Example: III. Test-First (NON-NEGOTIABLE) -->
-[PRINCIPLE_3_DESCRIPTION]
-<!-- Example: TDD mandatory: Tests written → User approved → Tests fail → Then implement; Red-Green-Refactor cycle strictly enforced -->
+### III. Composables Pattern
+- Extract reusable logic into composables (files prefixed with `use`, e.g., `useSpendbook.ts`)
+- Composables must be placed in `src/composables/` directory
+- Each composable should have a single, clear responsibility
+- Composables must return typed objects with clear API surfaces
+- Document composable purpose and usage with JSDoc comments
 
-### [PRINCIPLE_4_NAME]
-<!-- Example: IV. Integration Testing -->
-[PRINCIPLE_4_DESCRIPTION]
-<!-- Example: Focus areas requiring integration tests: New library contract tests, Contract changes, Inter-service communication, Shared schemas -->
+### IV. DaisyUI Component Library
+- Use DaisyUI components exclusively for UI elements (btn, card, dropdown, checkbox, modal, drawer, etc.)
+- Do not create custom implementations of components that DaisyUI provides
+- Follow DaisyUI naming conventions for classes and variants
+- Leverage DaisyUI themes for consistent styling
+- Combine DaisyUI with Tailwind utility classes for layout and spacing
 
-### [PRINCIPLE_5_NAME]
-<!-- Example: V. Observability, VI. Versioning & Breaking Changes, VII. Simplicity -->
-[PRINCIPLE_5_DESCRIPTION]
-<!-- Example: Text I/O ensures debuggability; Structured logging required; Or: MAJOR.MINOR.BUILD format; Or: Start simple, YAGNI principles -->
+### V. No Testing Infrastructure
+- No unit tests, integration tests, or E2E tests required
+- No testing frameworks (Vitest, Jest, Playwright, Cypress, etc.) should be added
+- Focus on runtime functionality and user experience
+- Manual testing and validation is acceptable
 
-## [SECTION_2_NAME]
-<!-- Example: Additional Constraints, Security Requirements, Performance Standards, etc. -->
+## Technology Stack
 
-[SECTION_2_CONTENT]
-<!-- Example: Technology stack requirements, compliance standards, deployment policies, etc. -->
+### Required Stack
+- **Framework**: Vue 3 (latest stable)
+- **Build Tool**: Vite
+- **Language**: TypeScript (strict mode)
+- **Styling**: Tailwind CSS + DaisyUI
+- **API Style**: Composition API with `<script setup>`
 
-## [SECTION_3_NAME]
-<!-- Example: Development Workflow, Review Process, Quality Gates, etc. -->
+### File Structure Conventions
+```
+src/
+  ├── components/        # Vue components
+  ├── composables/       # Reusable composition functions
+  ├── types/            # TypeScript type definitions
+  ├── assets/           # Static assets
+  ├── views/            # Page-level components (if using router)
+  └── App.vue           # Root component
+```
 
-[SECTION_3_CONTENT]
-<!-- Example: Code review requirements, testing gates, deployment approval process, etc. -->
+### Component Guidelines
+- Keep components focused and single-purpose
+- Use props for input, emits for output
+- Define props and emits with TypeScript types
+- Extract complex logic into composables
+- Prefer functional composition over component inheritance
+
+## Code Quality Standards
+
+### TypeScript
+- Enable all strict mode flags in `tsconfig.json`
+- Use explicit return types for functions
+- Leverage TypeScript utility types (`Partial`, `Pick`, `Omit`, etc.)
+- Define types close to their usage
+
+### Vue Best Practices
+- Use `defineProps` and `defineEmits` with TypeScript syntax
+- Destructure props carefully (use `toRefs` or `toRef` when needed)
+- Keep template logic simple, move complexity to composables
+- Use `v-if` for conditional rendering, `v-show` for toggling visibility
+
+### Styling
+- Use Tailwind utility classes for layout and spacing
+- Use DaisyUI component classes for UI elements
+- Avoid custom CSS unless absolutely necessary
+- Follow mobile-first responsive design principles
+
+## Development Workflow
+
+### Feature Development
+1. Plan component structure and identify composables
+2. Define TypeScript types/interfaces first
+3. Implement composables with typed return values
+4. Build components using DaisyUI components
+5. Apply Tailwind utilities for layout
+6. Verify TypeScript compilation passes with no errors
+
+### Code Review Focus
+- TypeScript strict mode compliance
+- Proper use of Composition API patterns
+- Appropriate use of DaisyUI components
+- Composable extraction for reusable logic
+- No custom implementations of existing DaisyUI components
 
 ## Governance
-<!-- Example: Constitution supersedes all other practices; Amendments require documentation, approval, migration plan -->
 
-[GOVERNANCE_RULES]
-<!-- Example: All PRs/reviews must verify compliance; Complexity must be justified; Use [GUIDANCE_FILE] for runtime development guidance -->
+This constitution defines the non-negotiable standards for the Spendbook project. All code must comply with these principles:
 
-**Version**: [CONSTITUTION_VERSION] | **Ratified**: [RATIFICATION_DATE] | **Last Amended**: [LAST_AMENDED_DATE]
-<!-- Example: Version: 2.1.1 | Ratified: 2025-06-13 | Last Amended: 2025-07-16 -->
+- **Composition API only**: No Options API code will be accepted
+- **TypeScript strict mode**: Cannot be disabled
+- **No testing**: Testing infrastructure is explicitly excluded
+- **DaisyUI first**: Use DaisyUI components before building custom UI
+- **Composables for logic**: Extract shared logic into composables
+
+**Version**: 1.0.0 | **Ratified**: 2025-12-08 | **Last Amended**: 2025-12-08
