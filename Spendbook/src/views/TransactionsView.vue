@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useTransactions } from '@/composables/useTransactions'
 import AppLayout from '@/components/layout/AppLayout.vue'
@@ -9,7 +9,7 @@ import TransactionFilters from '@/components/transactions/TransactionFilters.vue
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue'
 import ErrorMessage from '@/components/common/ErrorMessage.vue'
 import SuccessMessage from '@/components/common/SuccessMessage.vue'
-import { getTransactionType } from '@/types'
+import { getTransactionType, type Transaction } from '@/types'
 
 const route = useRoute()
 const {
@@ -31,20 +31,24 @@ const selectedType = ref<string | null>(null)
 const searchQuery = ref('')
 const successMessage = ref('')
 const transactionFormRef = ref()
+const filteredTransactions = ref<Transaction[]>([])
 
 // Auto-show form if coming from quick action
 if (route.query.type) {
   showForm.value = true
 }
 
-const filteredTransactions = computed(() => {
+const getFilteredTransactions = () => {
+  console.log('Filtered Transactions:', transactions.value)
   let filtered = transactions.value
+  console.log('Filtered Transactions1:', filtered)
 
   // Filter by type
   if (selectedType.value) {
     filtered = filtered.filter(t => getTransactionType(t.amount) === selectedType.value)
   }
 
+  console.log('Filtered Transactions2:', filtered)
   // Filter by search query
   if (searchQuery.value.trim()) {
     const query = searchQuery.value.toLowerCase()
@@ -54,9 +58,14 @@ const filteredTransactions = computed(() => {
       (t.trackingTopicId && getTopicById(t.trackingTopicId)?.topic.toLowerCase().includes(query))
     )
   }
-
+  console.log('Filtered Transactions3:', filtered)
   return filtered
-})
+}
+
+watch(transactions, (newTransactions) => {
+  console.log('Transactions updated:', newTransactions)
+  filteredTransactions.value = getFilteredTransactions()
+}, { immediate: true })
 
 const getAccountName = (id: number) => {
   return getAccountById(id)?.name || 'Unknown Account'

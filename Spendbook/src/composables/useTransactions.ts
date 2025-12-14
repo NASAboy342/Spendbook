@@ -16,6 +16,7 @@ export function useTransactions() {
   const error = ref<string | null>(null)
 
   const sortedTransactions = computed(() => {
+    console.log('Filtered Transactions in useTransactions:', transactions.value)
     return transactions.value
       .slice()
       .sort((a, b) => new Date(b.timeStamp).getTime() - new Date(a.timeStamp).getTime())
@@ -25,6 +26,7 @@ export function useTransactions() {
     isLoading.value = true
     error.value = null
 
+    console.log('Fetching transactions for accountId:', accountId)
     try {
       const username = authService.getUsername()
       if (!username) {
@@ -33,7 +35,6 @@ export function useTransactions() {
       }
 
       if (!accountId) {
-        // If no account specified, just clear transactions
         transactions.value = []
         return
       }
@@ -41,6 +42,7 @@ export function useTransactions() {
       const response = await transactionService.getTransactions(username, accountId, fromUtcDate, toUtcDate)
       if (response.errorCode === 0 && response.data) {
         transactions.value = response.data
+        console.log('Fetched Transactions:', transactions.value)
       } else {
         error.value = response.errorMessage || 'Failed to load transactions'
       }
@@ -52,12 +54,15 @@ export function useTransactions() {
   }
 
   const fetchAccounts = async () => {
+    console.log('Fetched Accounts:')
     const username = authService.getUsername()
+    console.log('Username for fetching accounts:', username)
     if (!username) return
 
     const response = await accountService.getAccounts(username)
     if (response.errorCode === 0 && response.data) {
       accounts.value = response.data.accounts
+      console.log('Fetched Accounts response:', accounts.value)
     }
   }
 
@@ -121,10 +126,11 @@ export function useTransactions() {
     error.value = null
   }
 
-  onMounted(() => {
-    fetchTransactions()
-    fetchAccounts()
-    fetchTopics()
+  onMounted(async () => {
+    console.log('useTransactions mounted - fetching initial data')
+    await fetchAccounts()
+    await fetchTopics()
+    await fetchTransactions(accounts.value[0]?.id || 0)
   })
 
   return {
