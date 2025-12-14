@@ -3,6 +3,8 @@ import { ref, computed, onMounted } from 'vue'
 import { transactionService } from '@/services/transaction'
 import { accountService } from '@/services/account'
 import { topicService } from '@/services/topic'
+import { authService } from '@/services/auth'
+import { getTransactionType } from '@/types'
 import type { Transaction, Account, Topic, CreateTransactionRequest, TransactionType } from '@/types'
 
 export function useTransactions() {
@@ -16,19 +18,31 @@ export function useTransactions() {
   const sortedTransactions = computed(() => {
     return transactions.value
       .slice()
-      .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+      .sort((a, b) => new Date(b.timeStamp).getTime() - new Date(a.timeStamp).getTime())
   })
 
-  const fetchTransactions = async () => {
+  const fetchTransactions = async (accountId?: number, fromUtcDate?: string, toUtcDate?: string) => {
     isLoading.value = true
     error.value = null
 
     try {
-      const response = await transactionService.getTransactions()
-      if (response.success && response.data) {
+      const username = authService.getUsername()
+      if (!username) {
+        error.value = 'Not authenticated'
+        return
+      }
+
+      if (!accountId) {
+        // If no account specified, just clear transactions
+        transactions.value = []
+        return
+      }
+
+      const response = await transactionService.getTransactions(username, accountId, fromUtcDate, toUtcDate)
+      if (response.errorCode === 0 && response.data) {
         transactions.value = response.data
       } else {
-        error.value = response.error?.message || 'Failed to load transactions'
+        error.value = response.errorMessage || 'Failed to load transactions'
       }
     } catch (err) {
       error.value = 'Failed to load transactions'
@@ -38,16 +52,22 @@ export function useTransactions() {
   }
 
   const fetchAccounts = async () => {
-    const response = await accountService.getAccounts()
-    if (response.success && response.data) {
-      accounts.value = response.data
+    const username = authService.getUsername()
+    if (!username) return
+
+    const response = await accountService.getAccounts(username)
+    if (response.errorCode === 0 && response.data) {
+      accounts.value = response.data.accounts
     }
   }
 
   const fetchTopics = async () => {
-    const response = await topicService.getTopics()
-    if (response.success && response.data) {
-      topics.value = response.data
+    const username = authService.getUsername()
+    if (!username) return
+
+    const response = await topicService.getTopics(username)
+    if (response.errorCode === 0 && response.data) {
+      topics.value = response.data.topics
     }
   }
 
@@ -56,13 +76,19 @@ export function useTransactions() {
     error.value = null
 
     try {
-      const response = await transactionService.createTransaction(data)
-      if (response.success && response.data) {
-        await fetchTransactions()
+      const username = authService.getUsername()
+      if (!username) {
+        error.value = 'Not authenticated'
+        return false
+      }
+
+      const response = await transactionService.createTransaction(username, data)
+      if (response.errorCode === 0 && response.data) {
+        await fetchTransactions(data.accountId)
         await fetchAccounts() // Refresh accounts to update balances
         return true
       } else {
-        error.value = response.error?.message || 'Failed to create transaction'
+        error.value = response.errorMessage || 'Failed to create transaction'
         return false
       }
     } catch (err) {
@@ -73,20 +99,20 @@ export function useTransactions() {
     }
   }
 
-  const getAccountById = (id: string) => {
+  const getAccountById = (id: number) => {
     return accounts.value.find(account => account.id === id)
   }
 
-  const getTopicById = (id: string) => {
+  const getTopicById = (id: number) => {
     return topics.value.find(topic => topic.id === id)
   }
 
   const filterByType = (type: TransactionType | null) => {
     if (!type) return sortedTransactions.value
-    return sortedTransactions.value.filter(t => t.type === type)
+    return sortedTransactions.value.filter(t => getTransactionType(t.amount) === type)
   }
 
-  const filterByAccount = (accountId: string | null) => {
+  const filterByAccount = (accountId: number | null) => {
     if (!accountId) return sortedTransactions.value
     return sortedTransactions.value.filter(t => t.accountId === accountId)
   }

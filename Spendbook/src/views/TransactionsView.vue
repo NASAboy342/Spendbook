@@ -9,6 +9,7 @@ import TransactionFilters from '@/components/transactions/TransactionFilters.vue
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue'
 import ErrorMessage from '@/components/common/ErrorMessage.vue'
 import SuccessMessage from '@/components/common/SuccessMessage.vue'
+import { getTransactionType } from '@/types'
 
 const route = useRoute()
 const {
@@ -41,28 +42,28 @@ const filteredTransactions = computed(() => {
 
   // Filter by type
   if (selectedType.value) {
-    filtered = filtered.filter(t => t.type === selectedType.value)
+    filtered = filtered.filter(t => getTransactionType(t.amount) === selectedType.value)
   }
 
   // Filter by search query
   if (searchQuery.value.trim()) {
     const query = searchQuery.value.toLowerCase()
     filtered = filtered.filter(t =>
-      t.description.toLowerCase().includes(query) ||
+      t.remarks?.toLowerCase().includes(query) ||
       getAccountById(t.accountId)?.name.toLowerCase().includes(query) ||
-      (t.topicId && getTopicById(t.topicId)?.name.toLowerCase().includes(query))
+      (t.trackingTopicId && getTopicById(t.trackingTopicId)?.topic.toLowerCase().includes(query))
     )
   }
 
   return filtered
 })
 
-const getAccountName = (id: string) => {
+const getAccountName = (id: number) => {
   return getAccountById(id)?.name || 'Unknown Account'
 }
 
-const getTopicName = (id: string) => {
-  return getTopicById(id)?.name || 'Unknown Topic'
+const getTopicName = (id: number) => {
+  return getTopicById(id)?.topic || 'Unknown Topic'
 }
 
 const handleCreateTransaction = async (data: any) => {
@@ -70,6 +71,7 @@ const handleCreateTransaction = async (data: any) => {
   successMessage.value = ''
 
   const success = await createTransaction(data)
+   successMessage.value = error.value || '';
   if (success) {
     successMessage.value = 'Transaction created successfully!'
     showForm.value = false
@@ -148,7 +150,7 @@ const toggleForm = () => {
             {{ filteredTransactions.length }} Transaction{{ filteredTransactions.length !== 1 ? 's' : '' }}
           </h2>
           <button
-            @click="fetchTransactions"
+            @click="fetchTransactions()"
             class="btn btn-ghost btn-sm"
           >
             🔄 Refresh

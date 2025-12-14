@@ -3,7 +3,7 @@ import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { formatCurrency } from '@/utils/format'
 import { formatDate } from '@/utils/date'
-import { TransactionType, type Transaction } from '@/types'
+import { TransactionType, getTransactionType, type Transaction } from '@/types'
 
 interface Props {
   transactions: Transaction[]
@@ -14,17 +14,17 @@ const router = useRouter()
 
 const hasTransactions = computed(() => props.transactions.length > 0)
 
-const getTransactionIcon = (type: string) => {
-  return type === TransactionType.PayIn ? '💵' : '💸'
+const getTransactionIcon = (amount: number) => {
+  return getTransactionType(amount) === TransactionType.PayIn ? '💵' : '💸'
 }
 
-const getTransactionColor = (type: string) => {
-  return type === TransactionType.PayIn ? 'text-success' : 'text-error'
+const getTransactionColor = (amount: number) => {
+  return getTransactionType(amount) === TransactionType.PayIn ? 'text-success' : 'text-error'
 }
 
 const getAmountDisplay = (transaction: Transaction) => {
-  const formatted = formatCurrency(transaction.amount)
-  return transaction.type === TransactionType.PayIn ? `+${formatted}` : `-${formatted}`
+  const formatted = formatCurrency(Math.abs(transaction.amount))
+  return transaction.amount >= 0 ? `+${formatted}` : `-${formatted}`
 }
 
 const viewAllTransactions = () => {
@@ -55,16 +55,16 @@ const viewAllTransactions = () => {
           class="flex items-center justify-between p-3 bg-base-200 rounded-lg hover:bg-base-300 transition-colors"
         >
           <div class="flex items-center gap-3">
-            <span class="text-2xl">{{ getTransactionIcon(transaction.type) }}</span>
+            <span class="text-2xl">{{ getTransactionIcon(transaction.amount) }}</span>
             <div>
-              <p class="font-medium">{{ transaction.description }}</p>
+              <p class="font-medium">{{ transaction.remarks || 'No description' }}</p>
               <p class="text-sm text-base-content/60">
-                {{ formatDate(transaction.timestamp, 'datetime') }}
+                {{ formatDate(transaction.timeStamp, 'datetime') }}
               </p>
             </div>
           </div>
           <div class="text-right">
-            <p class="font-bold" :class="getTransactionColor(transaction.type)">
+            <p class="font-bold" :class="getTransactionColor(transaction.amount)">
               {{ getAmountDisplay(transaction) }}
             </p>
           </div>

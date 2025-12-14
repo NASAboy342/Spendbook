@@ -7,7 +7,7 @@ import { useAuth } from './composables/useAuth'
 const app = createApp(App)
 
 // Initialize auth state before mounting
-const { initAuth } = useAuth()
+const { initAuth } = await useAuth()
 initAuth()
 
 app.use(router)

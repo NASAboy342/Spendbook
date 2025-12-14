@@ -1,12 +1,19 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
+import { useRoute } from 'vue-router'
 import { TransactionType, type Account, type Topic } from '@/types'
 import { isValidAmount, hasSufficientBalance } from '@/utils/validation'
-import { nowUTC } from '@/utils/date'
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue'
 import ErrorMessage from '@/components/common/ErrorMessage.vue'
 import SuccessMessage from '@/components/common/SuccessMessage.vue'
+
+interface TransactionData {
+  accountId: number
+  topicId: number
+  type: string
+  amount: number
+  description: string
+}
 
 interface Props {
   accounts: Account[]
@@ -16,22 +23,15 @@ interface Props {
 
 const props = defineProps<Props>()
 const emit = defineEmits<{
-  submit: [data: {
-    accountId: string
-    topicId?: string
-    type: string
-    amount: number
-    description: string
-  }]
-  cancel: []
+  (e: 'submit', data: TransactionData): void
+  (e: 'cancel'): void
 }>()
 
-const router = useRouter()
 const route = useRoute()
 
 // Form fields
-const accountId = ref('')
-const topicId = ref('')
+const accountId = ref(0)
+const topicId = ref(0)
 const transactionType = ref<string>(TransactionType.PayIn)
 const amount = ref<number | ''>('')
 const description = ref('')
@@ -46,7 +46,7 @@ const selectedAccount = computed(() => {
 })
 
 const activeTopics = computed(() => {
-  return props.topics.filter(t => t.status === 0) // Active status
+  return props.topics.filter(t => t.statusCode === 0) // Active status
 })
 
 const canSubmit = computed(() => {
@@ -95,7 +95,7 @@ const handleSubmit = () => {
 
   emit('submit', {
     accountId: accountId.value,
-    topicId: topicId.value || undefined,
+    topicId: topicId.value,
     type: transactionType.value,
     amount: Number(amount.value),
     description: description.value.trim(),
@@ -103,8 +103,8 @@ const handleSubmit = () => {
 }
 
 const resetForm = () => {
-  accountId.value = ''
-  topicId.value = ''
+  accountId.value = 0
+  topicId.value = 0
   amount.value = ''
   description.value = ''
   validationError.value = ''
@@ -185,7 +185,7 @@ defineExpose({ resetForm })
           >
             <option value="">No topic</option>
             <option v-for="topic in activeTopics" :key="topic.id" :value="topic.id">
-              {{ topic.name }}
+              {{ topic.topic }}
             </option>
           </select>
         </div>

@@ -2,7 +2,7 @@
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { authService } from '@/services/auth'
-import type { User, LoginRequest, RegisterRequest } from '@/types'
+import type { User, LoginRequest, RegisterRequest, ApiResponse } from '@/types'
 
 const currentUser = ref<User | null>(null)
 const isLoading = ref(false)
@@ -18,15 +18,19 @@ export function useAuth() {
     error.value = null
 
     try {
-      const response = await authService.login(credentials)
+      const response = await authService.login(credentials);
       
-      if (response.success && response.data) {
-        currentUser.value = response.data.user
-        authService.setToken(response.data.token)
-        localStorage.setItem('user', JSON.stringify(response.data.user))
+      if (response.errorCode === 0 && response.data) {
+        const user: User = {
+          username: response.data.username || credentials.username,
+          utcCreateOn: response.data.utcCreateOn || new Date().toISOString()
+        }
+        currentUser.value = user
+        authService.setToken(credentials.username) // Use username as token
+        localStorage.setItem('user', JSON.stringify(user))
         router.push('/')
       } else {
-        error.value = response.error?.message || 'Login failed'
+        error.value = response.errorMessage || 'Login failed'
       }
     } catch (err) {
       error.value = 'An unexpected error occurred'
@@ -42,13 +46,17 @@ export function useAuth() {
     try {
       const response = await authService.register(data)
       
-      if (response.success && response.data) {
-        currentUser.value = response.data.user
-        authService.setToken(response.data.token)
-        localStorage.setItem('user', JSON.stringify(response.data.user))
+      if (response.errorCode === 0 && response.data) {
+        const user: User = {
+          username: response.data.username || data.username,
+          utcCreateOn: response.data.utcCreateOn || new Date().toISOString()
+        }
+        currentUser.value = user
+        authService.setToken(data.username) // Use username as token
+        localStorage.setItem('user', JSON.stringify(user))
         router.push('/')
       } else {
-        error.value = response.error?.message || 'Registration failed'
+        error.value = response.errorMessage || 'Registration failed'
       }
     } catch (err) {
       error.value = 'An unexpected error occurred'

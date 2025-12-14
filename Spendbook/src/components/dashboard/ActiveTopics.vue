@@ -12,9 +12,10 @@ const router = useRouter()
 
 const hasTopics = computed(() => props.topics.length > 0)
 
-const getProgress = (topic: Topic) => {
-  if (topic.targetAmount === 0) return 0
-  return Math.min((topic.currentAmount / topic.targetAmount) * 100, 100)
+const getProgress = (_topic: Topic) => {
+  // TODO: Calculate current amount from transactions
+  // For now, return 0 as placeholder
+  return 0
 }
 
 const getProgressColor = (progress: number) => {
@@ -51,7 +52,7 @@ const viewAllTopics = () => {
           class="p-3 bg-base-200 rounded-lg"
         >
           <div class="flex justify-between items-center mb-2">
-            <h3 class="font-medium">{{ topic.name }}</h3>
+            <h3 class="font-medium">{{ topic.topic }}</h3>
             <span class="text-sm text-base-content/60">
               {{ Math.round(getProgress(topic)) }}%
             </span>
@@ -63,8 +64,8 @@ const viewAllTopics = () => {
             max="100"
           ></progress>
           <div class="flex justify-between text-sm text-base-content/60 mt-2">
-            <span>${{ topic.currentAmount.toFixed(2) }}</span>
-            <span>${{ topic.targetAmount.toFixed(2) }}</span>
+            <span>$0.00</span>
+            <span>Target: ${{ topic.targetAmount.toFixed(2) }}</span>
           </div>
         </div>
       </div>

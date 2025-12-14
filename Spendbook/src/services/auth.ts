@@ -10,18 +10,18 @@ import type {
 export const authService = {
   /**
    * User login
-   * POST /auth/login
+   * POST /api/spendbook/login
    */
   async login(credentials: LoginRequest): Promise<ApiResponse<AuthResponse>> {
-    return apiService.post<AuthResponse>('/auth/login', credentials)
+    return apiService.post<AuthResponse>('/api/spendbook/login', credentials)
   },
 
   /**
    * User registration
-   * POST /auth/register
+   * POST /api/spendbook/create-user
    */
   async register(data: RegisterRequest): Promise<ApiResponse<AuthResponse>> {
-    return apiService.post<AuthResponse>('/auth/register', data)
+    return apiService.post<AuthResponse>('/api/spendbook/create-user', data)
   },
 
   /**
@@ -44,6 +44,13 @@ export const authService = {
    */
   getToken(): string | null {
     return localStorage.getItem('auth_token')
+  },
+
+  /**
+   * Get current username
+   */
+  getUsername(): string | null {
+    return this.getToken() // Token is username
   },
 
   /**

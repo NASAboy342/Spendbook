@@ -5,41 +5,59 @@ import type {
   CreateTopicRequest,
   UpdateTopicRequest,
   ApiResponse,
+  GetTopicResponse,
 } from '@/types'
 
 export const topicService = {
   /**
    * Get all topics
-   * POST /topics/list
+   * POST /api/spendbook/get-tracking-topic
    */
-  async getTopics(): Promise<ApiResponse<Topic[]>> {
-    return apiService.post<Topic[]>('/topics/list')
+  async getTopics(username: string): Promise<ApiResponse<GetTopicResponse>> {
+    const response = await apiService.post<GetTopicResponse>('/api/spendbook/get-tracking-topic', { username })
+    return response
   },
 
   /**
    * Create new topic
-   * POST /topics/create
+   * POST /api/spendbook/create-tracking-topic
    */
-  async createTopic(data: CreateTopicRequest): Promise<ApiResponse<Topic>> {
-    return apiService.post<Topic>('/topics/create', data)
+  async createTopic(username: string, data: CreateTopicRequest): Promise<ApiResponse<Topic>> {
+    return apiService.post<Topic>('/api/spendbook/create-tracking-topic', {
+      username,
+      topicName: data.name,
+      utcTargetDate: data.targetDate,
+      targetAmount: data.targetAmount,
+      currency: 'USD'
+    })
   },
 
   /**
    * Update topic
-   * POST /topics/update
+   * POST /api/spendbook/update-tracking-topic
    */
   async updateTopic(
-    id: string,
+    username: string,
+    trackingTopicId: number,
     data: UpdateTopicRequest
   ): Promise<ApiResponse<Topic>> {
-    return apiService.post<Topic>('/topics/update', { id, ...data })
+    return apiService.post<Topic>('/api/spendbook/update-tracking-topic', {
+      username,
+      trackingTopicId,
+      newName: data.name,
+      newStatus: data.status
+    })
   },
 
   /**
-   * Delete topic
-   * POST /topics/delete
+   * Delete topic - not supported, use update status instead
    */
-  async deleteTopic(id: string): Promise<ApiResponse<void>> {
-    return apiService.post<void>('/topics/delete', { id })
+  async deleteTopic(username: string, trackingTopicId: number): Promise<ApiResponse<void>> {
+    // Delete is done by setting status to Cancelled (3)
+    return apiService.post<void>('/api/spendbook/update-tracking-topic', {
+      username,
+      trackingTopicId,
+      newStatus: 3 // Cancelled
+    })
   },
 }

@@ -1,17 +1,25 @@
 // Core type definitions for Spendbook v1
 
 export interface User {
-  id: string
   username: string
-  email: string
+  utcCreateOn: string
 }
 
 export interface Account {
-  id: string
+  id: number
+  userId: number
   name: string
   balance: number
-  createdAt: string
-  updatedAt: string
+  currency: string
+  usdRate: number
+  utcCreatedOn: string | null
+  utcModifiedOn: string | null
+  utcLastAccessedOn: string | null
+}
+
+export interface UserSummaryStatus {
+  accounts: Account[]
+  trackingTopics: Topic[]
 }
 
 export const TopicStatus = {
@@ -25,14 +33,20 @@ export const TopicStatus = {
 export type TopicStatus = typeof TopicStatus[keyof typeof TopicStatus]
 
 export interface Topic {
-  id: string
-  name: string
+  id: number
+  topic: string
+  userId: number
+  utcTargetDate: string
   targetAmount: number
-  targetDate: string
-  currentAmount: number
-  status: TopicStatus
-  createdAt: string
-  updatedAt: string
+  currency: string
+  utcCreatedOn: string
+  utcModifiedOn: string
+  status: string
+  statusCode: TopicStatus
+}
+
+export interface GetTopicResponse {
+  topics: Topic[]
 }
 
 export const TransactionType = {
@@ -42,18 +56,26 @@ export const TransactionType = {
 
 export type TransactionType = typeof TransactionType[keyof typeof TransactionType]
 
-export interface Transaction {
-  id: string
-  accountId: string
-  topicId?: string
-  type: TransactionType
-  amount: number
-  description: string
-  timestamp: string
-  createdAt: string
+/**
+ * Determine transaction type based on amount
+ * Positive amount = PayIn, Negative amount = PayOut
+ */
+export function getTransactionType(amount: number): TransactionType {
+  return amount >= 0 ? TransactionType.PayIn : TransactionType.PayOut
 }
 
-// API Request/Response types
+export interface Transaction {
+  id: number
+  accountId: number
+  amount: number
+  balanceBefore: number
+  receiptUrl: string | null
+  remarks: string | null
+  balanceAfter: number
+  timeStamp: string
+  trackingTopicId: number | null
+}
+
 export interface LoginRequest {
   username: string
   password: string
@@ -61,13 +83,12 @@ export interface LoginRequest {
 
 export interface RegisterRequest {
   username: string
-  email: string
   password: string
 }
 
 export interface AuthResponse {
-  token: string
-  user: User
+  username: string
+  utcCreateOn: string
 }
 
 export interface CreateAccountRequest {
@@ -93,8 +114,8 @@ export interface UpdateTopicRequest {
 }
 
 export interface CreateTransactionRequest {
-  accountId: string
-  topicId?: string
+  accountId: number
+  topicId?: number
   type: TransactionType
   amount: number
   description: string
@@ -113,6 +134,6 @@ export interface ApiError {
 
 export interface ApiResponse<T> {
   data?: T
-  error?: ApiError
-  success: boolean
+  errorCode?: number
+  errorMessage?: string
 }

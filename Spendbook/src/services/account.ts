@@ -5,41 +5,55 @@ import type {
   CreateAccountRequest,
   UpdateAccountRequest,
   ApiResponse,
+  UserSummaryStatus,
 } from '@/types'
 
 export const accountService = {
   /**
-   * Get all accounts
-   * POST /accounts/list
+   * Get all accounts (via user summary status)
+   * POST /api/spendbook/get-user-summary-status
    */
-  async getAccounts(): Promise<ApiResponse<Account[]>> {
-    return apiService.post<Account[]>('/accounts/list')
+  async getAccounts(username: string): Promise<ApiResponse<UserSummaryStatus>> {
+    const response = await apiService.post<UserSummaryStatus>('/api/spendbook/get-user-summary-status', { username });
+    return response
   },
 
   /**
    * Create new account
-   * POST /accounts/create
+   * POST /api/spendbook/create-account
    */
-  async createAccount(data: CreateAccountRequest): Promise<ApiResponse<Account>> {
-    return apiService.post<Account>('/accounts/create', data)
+  async createAccount(username: string, data: CreateAccountRequest): Promise<ApiResponse<Account>> {
+    return apiService.post<Account>('/api/spendbook/create-account', {
+      username,
+      accountName: data.name,
+      initialBalance: data.initialBalance,
+      currency: 'USD'
+    })
   },
 
   /**
    * Update account
-   * POST /accounts/update
+   * POST /api/spendbook/update-account
    */
   async updateAccount(
-    id: string,
+    username: string,
+    accountId: number,
     data: UpdateAccountRequest
   ): Promise<ApiResponse<Account>> {
-    return apiService.post<Account>('/accounts/update', { id, ...data })
+    return apiService.post<Account>('/api/spendbook/update-account', {
+      username,
+      accountId,
+      newAccountName: data.name
+    })
   },
 
   /**
-   * Delete account
-   * POST /accounts/delete
+   * Delete account - not supported by API
    */
-  async deleteAccount(id: string): Promise<ApiResponse<void>> {
-    return apiService.post<void>('/accounts/delete', { id })
+  async deleteAccount(): Promise<ApiResponse<void>> {
+    return {
+      errorCode: 1,
+      errorMessage: 'Delete account is not supported by the API' 
+    }
   },
 }

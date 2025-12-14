@@ -56,32 +56,29 @@ class ApiService {
   async post<T>(endpoint: string, data?: any): Promise<ApiResponse<T>> {
     try {
       const response = await this.client.post(endpoint, data)
-      return {
-        data: response.data,
-        success: true,
-      }
+      return response.data
     } catch (error) {
+      console.log('API POST error:', error)
       return {
-        error: error as ApiError,
-        success: false,
+        errorCode: 1,
+        errorMessage: (this.handleError(error as AxiosError)).message,
       }
     }
   }
-
   async get<T>(endpoint: string, params?: any): Promise<ApiResponse<T>> {
     try {
       const response = await this.client.get(endpoint, { params })
-      return {
-        data: response.data,
-        success: true,
-      }
+      console.log('API GET response:', response.data)
+      // API returns: { data: {...}, errorCode: 0, errorMessage: null }
+      return response.data
     } catch (error) {
+      console.log('API GET error:', error)
       return {
-        error: error as ApiError,
-        success: false,
+        errorCode: 1,
+        errorMessage: (this.handleError(error as AxiosError)).message,
       }
     }
-  }
+  } 
 }
 
 export const apiService = new ApiService()

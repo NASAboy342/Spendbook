@@ -2,7 +2,7 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuth } from '@/composables/useAuth'
-import { isValidUsername, isValidEmail, isValidPassword } from '@/utils/validation'
+import { isValidUsername, isValidPassword } from '@/utils/validation'
 import AuthLayout from '@/components/layout/AuthLayout.vue'
 import ErrorMessage from '@/components/common/ErrorMessage.vue'
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue'
@@ -11,7 +11,6 @@ const router = useRouter()
 const { register, isLoading, error, clearError } = useAuth()
 
 const username = ref('')
-const email = ref('')
 const password = ref('')
 const confirmPassword = ref('')
 const validationError = ref('')
@@ -21,18 +20,13 @@ const handleSubmit = async () => {
   clearError()
 
   // Client-side validation
-  if (!username.value || !email.value || !password.value || !confirmPassword.value) {
+  if (!username.value || !password.value || !confirmPassword.value) {
     validationError.value = 'All fields are required'
     return
   }
 
   if (!isValidUsername(username.value)) {
     validationError.value = 'Invalid username (3-20 alphanumeric characters)'
-    return
-  }
-
-  if (!isValidEmail(email.value)) {
-    validationError.value = 'Invalid email format'
     return
   }
 
@@ -48,7 +42,6 @@ const handleSubmit = async () => {
 
   await register({
     username: username.value,
-    email: email.value,
     password: password.value,
   })
 }
@@ -83,20 +76,6 @@ onMounted(() => {
         <label class="label">
           <span class="label-text-alt">3-20 alphanumeric characters</span>
         </label>
-      </div>
-
-      <div class="form-control">
-        <label class="label">
-          <span class="label-text">Email</span>
-        </label>
-        <input
-          v-model="email"
-          type="email"
-          placeholder="Enter email"
-          class="input input-bordered"
-          :disabled="isLoading"
-          required
-        />
       </div>
 
       <div class="form-control">
